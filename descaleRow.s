@@ -42,8 +42,13 @@
  *                  zero entry, else a divide by zero error occurs.
  * Return Value: void
  * Registers used:
- *
- *
+ *     r0 - arg0 -- keeps track of loop var and is initialized
+ *     r1 - arg1 -- keeps track of loop end index
+ *     r2 - arg2 -- indicates which row to descale
+ *     r3 - arg3 -- holds the address of our matrix
+ *     r4 - local var -- holds the address the given row
+ *     r5 - local var -- holds the value of the pivot column (float)
+ *     r6 - local var -- used by loop to hold value of float at given row,col
  * Stack Variables: None
  */
 descaleRow:
@@ -80,5 +85,5 @@ done:
 	@ epilogue
 	sub	sp, fp, FP_OFFSET	@ closing stack frame
 	pop	{r4-r7,fp,lr}	@ restoring preserved registers
-	bx	lr		@ returning to called function
+	bx	lr		@ returning to caller function
 .end

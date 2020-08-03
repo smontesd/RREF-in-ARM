@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-void descaleRow(int colIndex, int colEnd, int rowIndex, float *matrix[]);
+#include "RREFCalc.h"
 
 // assembly (with tester)
 // error row1 has zero then we will divide by zero
@@ -75,10 +71,14 @@ void rref(int row, int col, float *matrix[]) {
 
 // C
 int main(int argc, char *argv[] ) {
-  float row1[] = {1.0,0.0,3.0};
-  float row2[] = {2.0,0.0,0.0};
-  float *prince[] = {row1,row2};
-  int row = 2;
+  float row1[] = {1.0,-1.0,3.0};
+  float row2[] = {2.0,0.52,0.0};
+  float row3[] = {0.0,0.0,0.0};
+  float row4[] = {3.3,2.0,-4.0};
+
+  float *prince[] = {row1,row2,row3,row4};
+
+  int row = 4;
   int col = 3;
 
   rref(row, col, prince);
