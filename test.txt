@@ -1,2 +1,0 @@
-This is a test file to see if I properly created a Git repository that is also
-connected to my GitHub account.
