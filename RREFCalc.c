@@ -135,19 +135,19 @@ int main(int argc, char *argv[] ) {
     }
   }
 
+  // Filling in matrix row by row via user input
   for (int i = 0; i < row; i++) {
-    // Taking in user input
     printf(INPUT_ROW,i);
 
     char buf[BUFSIZ];
-    int indicator = scanf(STR_FORMAT, buf);
 
-    // if string is improperly formatted then the row is all 0's
-    if ( indicator <= 0 ) {
-      continue; 
+    // waiting for user input for row
+    char * result = fgets(buf, BUFSIZ, stdin);
+    if ( result == NULL ) {
+      continue;
     }
 
-    // extracting row and setting columns
+    // parsing each column entry from user's row input
     char * token = strtok(buf, DELIM);
     int j = 0;
 
@@ -157,7 +157,6 @@ int main(int argc, char *argv[] ) {
       j++;
     }
   }
-  printf(NEWLINE);
 
   // calling rref function
   int dimension = rref(row, col, matrix);
