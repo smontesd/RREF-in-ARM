@@ -26,7 +26,7 @@
 /*
  * Function Name: descaleRow()
  * Function Prototype: void descaleRow( int colIndex, int colEnd, int rowIndex,
- *                     float *matrix[] );
+ *                     float ** matrix );
  * Description: Given an array of pointers to each row in an m x n matrix, this
  *              function will start at a given column and descale the row so
  *              that the leading coefficient in the row is one. This function
