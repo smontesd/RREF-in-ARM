@@ -16,11 +16,12 @@
 	.equ	DOUBLE_ALIGN, 3	@ used to align on an 8-byte memory address
 	.equ	FP_OFFSET, 20	@ offset to set frame pointer
 	.equ	LOCAL_SIZE, 16	@ offset to create space for local variables
-	.equ	ARG0, -24	@ offset to access arg0
-	.equ	ARG1, -28	@ offset to access arg1
-	.equ	ARG2, -32	@ offset to access arg2
-	.equ	ARG3, -36	@ offset to access arg3
+	.equ	I_OFF, -24	@ offset of loop index i on stack
+	.equ	J_OFF, -28	@ offset of inner loop index j on stack
+	.equ	SCALAR, -32	@ offset of scalar local var
 	.equ	IN_ARG4, 4	@ offset to retrieve arg4 using frame pointer
+	.equ	PTR_SIZE, 4	@ size of a pointer
+	.equ	FLOAT_SIZE, 4	@ size of a float
 
 @ text segment
 	.text
@@ -46,11 +47,6 @@
  * Registers Used:
  *
  * Stack Variables:
- *     matrix - [fp + 4] -- address of matrix (arg4)
- *     colStart - [fp - 24] -- index of pivot column
- *     colEnd - [fp - 28] -- index of last column
- *     row - [fp - 32] -- index of the row to reduce other rows with
- *     rowEnd - [fp - 36] -- number of rows in the matrix
  */
 reduceRows:
 	@ prologue
@@ -58,15 +54,57 @@ reduceRows:
 	add	fp, sp, FP_OFFSET	@ setting frame pointer
 	sub	sp, sp, LOCAL_SIZE	@ making room for local variables
 
-	@ function body
-	str	r0, [fp, ARG0]	@ storing first argument in stack
-	str	r1, [fp, ARG1]	@ storing second argument in stack
-	str	r2, [fp, ARG2]	@ storing third argument in stack
-	str	r3, [fp, ARG3]	@ storing fourth argument in stack
+	@ start of function body
+	mov	r4, 0		@ initializing outer loop index (int i = 0)
+	str	r4, [fp, I_OFF]	@ storing initial value for loop
 
-	mov	r0, 0		@ r0 now holds the index of the first element	
-for1:	cmp	r0, r3	
+	@ outer loop condition check
+for1:	cmp	r4, r1		@ checking if r4 >= r1 (i > rowEnd)
+	bge	end1		@ exiting outer for loop if so
 
+	@ outer loop body
+	cmp	r4, r2		@ checking if r4 == r2 (i == rowIndex)
+	beq	next1		@ continue to next iteration
+
+	ldr	r6, [fp, IN_ARG4]	@ loading arg4 into r6 (r6 = matrix)
+	mov	r5, PTR_SIZE	@ copying the size of a pointer to r5
+	mul	r5, r4, r5	@ calculating offset for ith row retrieval
+	add	r6, r6, r5	@ adding offset to reach correct row value
+	ldr	r7, [r6]	@ loading address of matrix[i] into r7
+	mov	r5, FLOAT_SIZE	@ copying the size of a float to r5
+	mul	r5, r2, r5	@ calculating offset for rowindexth col
+	add	r7, r7, r5	@ adding offset address of matrix[i][rowIndex]
+	vldr.32	s5, [r7]	@ loading float into r5 from address in r7
+	vstr.32	s5, [fp, SCALAR]	@ storing scalar in stack
+
+	vcmp.32	s5, 0		@ if scalar = 0 skip to next iteration
+	beq	next1		@ continue to next iteration
+
+	mov	r5, r0		@ copying loop index to r5
+	str	r5, [fp, J_OFF]	@ storing loop index in stack
+
+	@ inner loop condition check
+for2:	cmp	r5, r1		@ checking if r5 >= r1 (j < colEnd)
+	bge	end2		@ ending inner loop if so
+
+	@ inner loop body
+	ldr	r6, [fp,IN_ARG4]	@ loading arg4 into r6 (r6 = matrix)
+	mov	r7, PTR_SIZE	@ copying ptr size into r7
+	mul	r7, r5, 
+
+next2:	@ setting up for next iteration of inner loop
+	ldr	r5, [fp, J_OFF]	@ loading inner loop index into r5 (r5 = j)
+	add	r5, r5, 1	@ incrementing inner loop index (j++)
+	str	r5, [fp, J_OFF]	@ storing inner loop index
+	b	for2		@ jumping to inner loop start
+end2:	@ end of inner for loop
+
+next1:	@ setting up for next iteration of outer loop
+	ldr	r4, [fp, I_OFF]	@ loading outer loop index into r4
+	add	r4, r4, 1	@ incrementing outer loop index (i++)
+	str	r4, [fp, I_OFF]	@ storing outer loop index
+	b	for1		@ jumping to loop start
+end1:
 	@ epilogue
 	sub	sp, fp, FP_OFFSET	@ closing stack frame
 	pop	{r4-r7,fp,lr}	@ restoring push registers
