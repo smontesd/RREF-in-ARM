@@ -13,7 +13,7 @@
 	.global	reduceRows	@ declaring function global for linking
 
 @ constants
-	.equ	DOUBLE_ALIGN, 3	@ used to align on an 8-byte memory address
+	.equ	DOUBLE_ALIGN, 3	@ to align on an 8-byte address
 	.equ	FP_OFFSET, 20	@ offset to set frame pointer
 	.equ	LOCAL_SIZE, 16	@ offset to create space for local variables
 	.equ	I_OFF, -24	@ offset of loop index i on stack
@@ -25,7 +25,7 @@
 
 @ text segment
 	.text
-	.align	DOUBLE_ALIGN	@ aligns stack pointer to be double word aligned
+	.align	DOUBLE_ALIGN
 	.type	reduceRows, %function	@ for linking
 
 /*
@@ -45,8 +45,18 @@
  *                   must be within valid boundaries of the matrix.
  * Return Value: void
  * Registers Used:
- *
+ *     r0 - arg0 -- index of which column to start reducing rows with
+ *     r1 - arg1 -- number of columns (index to end loop over columns)
+ *     r2 - arg2 -- index of the row being used to reduce the other rows
+ *     r3 - arg3 -- number of rows (index to end loop over rows)
+ *     r4 - local var -- keeps track of index of outer loop
+ *     r5 - local var -- keeps track of index of inner loop
+ *     r6 - arg4 -- matrix to row reduce
+ *     r7 - local var -- used to store floats and retrive addresses
  * Stack Variables:
+ *     i - [fp, -24] -- index of outer loop
+ *     j - [fp - 28] -- index of ineer loop
+ *     scalar - [fp, -32] -- a temporary variable keeping value of pivot columnn
  */
 reduceRows:
 	@ prologue
@@ -59,7 +69,7 @@ reduceRows:
 	str	r4, [fp, I_OFF]	@ storing initial value for loop
 
 	@ outer loop condition check
-for1:	cmp	r4, r1		@ checking if r4 >= r1 (i > rowEnd)
+for1:	cmp	r4, r3		@ checking if r4 >= r3 (i < rowEnd)
 	bge	end1		@ exiting outer for loop if so
 
 	@ outer loop body
@@ -72,15 +82,15 @@ for1:	cmp	r4, r1		@ checking if r4 >= r1 (i > rowEnd)
 	add	r6, r6, r5	@ adding offset to reach correct row value
 	ldr	r7, [r6]	@ loading address of matrix[i] into r7
 	mov	r5, FLOAT_SIZE	@ copying the size of a float to r5
-	mul	r5, r2, r5	@ calculating offset for rowindexth col
-	add	r7, r7, r5	@ adding offset address of matrix[i][rowIndex]
+	mul	r5, r0, r5	@ calculating offset for colStart'th col
+	add	r7, r7, r5	@ adding offset address of matrix[i][colStart]
 	vldr.32	s5, [r7]	@ loading float into r5 from address in r7
 	vstr.32	s5, [fp, SCALAR]	@ storing scalar in stack
 
-	vcmp.32	s5, 0		@ if scalar = 0 skip to next iteration
-	beq	next1		@ continue to next iteration
+	vcmp.f32 s5, 0		@ if scalar = 0 skip to next iteration
+	beq	next1		@ continue to next row
 
-	mov	r5, r0		@ copying loop index to r5
+	mov	r5, r0		@ copying loop index to r5 (r5 = colStart)
 	str	r5, [fp, J_OFF]	@ storing loop index in stack
 
 	@ inner loop condition check
@@ -90,7 +100,28 @@ for2:	cmp	r5, r1		@ checking if r5 >= r1 (j < colEnd)
 	@ inner loop body
 	ldr	r6, [fp,IN_ARG4]	@ loading arg4 into r6 (r6 = matrix)
 	mov	r7, PTR_SIZE	@ copying ptr size into r7
-	mul	r7, r5, 
+	mul	r7, r2, r7	@ calculating offset for rowIndex'th row
+	add	r7, r6, r7	@ adding offset to r6 and storing in r7
+	ldr	r4, [r7]	@ retrieving address of rowIndex'th row
+	mov	r7, FLOAT_SIZE	@ copying sizeof(float) into r7
+	mul	r7, r5, r7	@ calculating offset for matrix[rowIndex][j]
+	add	r7, r4, r7	@ adding offset to r4 and storing it into r7
+	vldr.32	s4, [r7]	@ loading matrix[rowIndex][j] into r4
+	vldr.32	s7, [fp, SCALAR]	@ loading scalar into r7
+	vmul.f32	s7, s4, s7	@ r7 = scalar * matrix[rowIndex][j]
+	ldr	r4, [fp, I_OFF]	@ loading outer loop index in r4 from stack
+	mov	r5, PTR_SIZE	@ copying ptr size into r5
+	mul	r5, r4, r5	@ calculating offset for ith row
+	add	r6, r6, r5	@ adding offset to r6
+	ldr	r6, [r6]	@ getting address of matrix[i]
+	mov	r4, FLOAT_SIZE	@ copying sizeof(float) to r4
+	ldr	r5, [fp, J_OFF]	@ loading index of inner loop
+	mul	r5 , r4, r5	@ calculating offset for jth col
+	add	r6, r6, r5	@ adding offset
+	vldr.32	s4, [r6]	@ loading value of matrix[i][j]
+	vsub.f32 s4, s4, s7	@ s4 = matrix[i][j] - scalar*matrix[rowIndex][j]
+	vstr.32 s4, [r6]	@ storing matrix[i][j] = s4
+	ldr	r4, [fp, I_OFF]		@ retrieving r4 value for next iteration
 
 next2:	@ setting up for next iteration of inner loop
 	ldr	r5, [fp, J_OFF]	@ loading inner loop index into r5 (r5 = j)

@@ -6,35 +6,6 @@
 
 #include "RREFCalc.h"
 
-// assembly (with tester)
-// error row1 has zero then we will divide by zero
-void reduceRows(int start, int end, int rowIndex, 
-                int rowEnd, float **matrix) {
-  for (int i = 0; i < rowEnd; i++) {
-    if (i == rowIndex || matrix[i][start] == 0) {
-      continue;
-    }
-
-    float scalar = matrix[i][start];
-    
-    // reducing each row column by column
-    for (int j = start; j < end; j++) {
-      matrix[i][j] -= scalar * matrix[rowIndex][j];
-    }
-  }
-}
-
-// assembly (with tester)
-void swapRows(int col, int row1, int row2, float ** matrix) {
-  for (int j = 0; j < col; j++) {
-    float temp = matrix[row1][j];
-
-    // swapping rows column by column
-    matrix[row1][j] = matrix[row2][j];
-    matrix[row2][j] = temp;
-  }
-}
-
 // assembly (tested via main)
 int rref(int row, int col, float ** matrix) {
   // counting the number of pivot columns
@@ -54,7 +25,7 @@ int rref(int row, int col, float ** matrix) {
         if (i == numPivotCols) {
           break;
         } else {
-          swapRows(col, numPivotCols, i, matrix);
+          swapRows(numPivotCols, i, matrix);
           break;
         }
       }
@@ -151,7 +122,7 @@ int main(int argc, char *argv[] ) {
     char * token = strtok(buf, DELIM);
     int j = 0;
 
-    while ( token != NULL ) {
+    while ( token != NULL && j < col ) {
       matrix[i][j] = strtof(token, NULL);
       token = strtok(NULL, DELIM);
       j++;

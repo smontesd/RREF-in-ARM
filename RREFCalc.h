@@ -33,6 +33,8 @@
 
 // External function protypes
 void descaleRow( int colIndex, int colEnd, int rowIndex, float ** matrix );
-
+void swapRows( int row1, int row2, float ** matrix );
+void reduceRows( int colStart, int colEnd, int rowIndex, int rowEnd,
+                 float ** matrix );
 
 #endif
