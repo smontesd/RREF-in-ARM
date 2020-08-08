@@ -53,7 +53,7 @@
  *     r2 - arg2 -- address of matrix
  *     r3 - local var -- holds index of outer loop (j)
  *     r4 - local var -- holds index of inner loop (i)
- *     r5 - local var -- used for accesing values in matrix
+ *     r5 - local var -- used for accessing values in matrix
  * Stack Variables:
  *     numPivotCols - [fp, -16] -- keeps track of the number of pivot columns
  *     j - [fp, -20] -- keeps track of outer loop index
@@ -135,7 +135,7 @@ end2:	@ end of inner loop  (within outer loop body)
 	@ preserving registers for function call
 	str	r0, [fp, R0_OFF]
 	str	r1, [fp, R1_OFF]
-	str	r2, [fp, R2_OFF}
+	str	r2, [fp, R2_OFF]
 	@ setting up for function call
 	ldr	r0, [fp, J_OFF]
 	ldr	r2, [fp, PIVOT_OFF]
@@ -147,7 +147,7 @@ end2:	@ end of inner loop  (within outer loop body)
 	ldr	r2, [fp, PIVOT_OFF]
 	ldr	r3, [fp, R0_OFF]
 	@ making space for additional args
-	ldr	r4, [R2_OFF]
+	ldr	r4, [fp, R2_OFF]
 	str	r4, [fp, IN_ARG4]
 	@ calling reduceRows(j, col, numPivotCol, row, matrix);
 	bl	reduceRows

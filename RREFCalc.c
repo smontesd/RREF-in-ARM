@@ -6,48 +6,6 @@
 
 #include "RREFCalc.h"
 
-// assembly (tested via main)
-int rref(int row, int col, float ** matrix) {
-  // counting the number of pivot columns
-  int numPivotCols = 0;
-  
-  for (int j = 0; j < col; j++) {
-    // searching for non zero column entry
-    char nonZero = 0;
-
-    for (int i = numPivotCols; i < row; i++) {
-      if (matrix[i][j] == 0) {
-        continue;
-      }
-      else {
-        nonZero = 1;
-
-        if (i == numPivotCols) {
-          break;
-        } else {
-          swapRows(numPivotCols, i, matrix);
-          break;
-        }
-      }
-    }
-      // checking if we have a pivot column
-    if (!nonZero) {
-      continue;
-    }
-
-    // making row w/ pivot col have a leading coefficient of 1
-    descaleRow(j,col,numPivotCols,matrix);
-
-    // reducing each row
-    reduceRows(j, col, numPivotCols, row, matrix);
-
-    // updating the number of pivot columns
-    numPivotCols++;
-  }
-
-  return numPivotCols;
-}
-
 /*
  * Function Name: main()
  * Function Prototype: int main( int argc, char *argv[]);
