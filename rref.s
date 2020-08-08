@@ -93,9 +93,10 @@ for2:	cmp	r4, r0		@ checking i loop index
 	mov	r4, FLOAT_SIZE	@ copying sizeof(float) into r4
 	mul	r4, r3, r4	@ calculating offset for jth col
 	add	r4, r5, r4	@ adding offset
-	vldr.32	s4, [r4]	@ loading float into r4 (r4 = matrix[i][j])
-	vcmp.f32 s4, 0		@ checking if float == 0
-	beq	next2		@ continue to next iteration if matrix[i][j] = 0
+	vldr.32	s5, [r4]	@ loading float into r4 (r4 = matrix[i][j])
+	vcmp.f32	s5, #0		@ checking if float == 0
+	vmrs    APSR_nzcv, FPSCR
+	beq	next2		@ continue to next iteration: matrix[i][j] = 0
 
 	mov	r5, 1		@ copying 1 to r5 and loading it to memory
 	strb	r5, [fp, NOZERO_OFF]	@ char nonZero = 1;

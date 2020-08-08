@@ -88,6 +88,7 @@ for1:	cmp	r4, r3		@ checking if r4 >= r3 (i < rowEnd)
 	vstr.32	s5, [fp, SCALAR]	@ storing scalar in stack
 
 	vcmp.f32 s5, 0		@ if scalar = 0 skip to next iteration
+	vmrs    APSR_nzcv, FPSCR	@ updating current program status reg
 	beq	next1		@ continue to next row
 
 	mov	r5, r0		@ copying loop index to r5 (r5 = colStart)

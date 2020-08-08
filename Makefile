@@ -16,11 +16,9 @@ GCC_FLAGS	= -c -g -std=c11 -pedantic -Wall
 
 # Standard Rules
 .s.o:
-	@echo "Compiling each source file individually..."
 	gcc $(ASM_FLAGS) $<
 
 .c.o:
-	@echo "Compiling C source files individually..."
 	gcc $(GCC_FLAGS) $<
 
 # Main Executable
