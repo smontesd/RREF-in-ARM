@@ -26,14 +26,14 @@ To run the program type the executable's name followed by the number of rows you
 # Normal Output
 Normal output is printed to stdout. An example of normal output would be the following:
 
-[pi@raspberrypi]:RREF-in-ARM$ ./RREFCalc 3 3
-ROW 0: 1 2.5 3
-ROW 1: 2 0 3.14
-ROW 2: 0 0 -5
-Printing Matrix in RREF...
-1.000000 0.000000 0.0000000
-0.000000 1.000000 0.0000000
-0.000000 0.000000 1.0000000
+[pi@raspberrypi]:RREF-in-ARM$ ./RREFCalc 3 3\n
+ROW 0: 1 2.5 3\n
+ROW 1: 2 0 3.14\n
+ROW 2: 0 0 -5\n
+Printing Matrix in RREF...\n
+1.000000 0.000000 0.0000000\n
+0.000000 1.000000 0.0000000\n
+0.000000 0.000000 1.0000000\n
 
 # Abnormal Output
 Abnormal output is printed to stderr. This can occur if an invalid number of command line arguments are passed, or if invalid values for row and col are passed.
